@@ -1,0 +1,2121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="robots" content="noindex">
+  <meta name="Description" content="Appgate SDP Client On-boarding">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#383838">
+  <meta http-equiv="expires" content="0">
+  <title>Appgate SDP Client Download</title>
+
+  <style>
+    /* ============================================================
+       DESIGN TOKENS
+       ============================================================ */
+    :root {
+      --color-white:       #fff;
+      --color-charcoal:    #3b4053;
+      --color-gray-13:     #212121;
+      --color-french-blue: #0072ba;
+      --color-silver:      #ddd;
+      --color-light-bg:    #f5f6f8;
+      --color-border:      #e0e2e8;
+      --color-code-bg:     #1e2130;
+      --color-code-text:   #c9d1e8;
+      --focus-outline:     solid 0.25rem rgba(109,179,233,0.8);
+      --focus-offset:      0.125rem;
+      --font-body:         "Helvetica Neue","Arial",sans-serif;
+      --font-mono:         "SF Mono","Fira Code","Consolas",monospace;
+    }
+
+    /* ============================================================
+       FOCUS / RESET
+       ============================================================ */
+    *:focus                { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+    *:focus:not(:focus-visible) { outline: none; }
+    *:focus-visible        { outline: var(--focus-outline); }
+
+    body {
+      margin: 0;
+      background-color: var(--color-white);
+      color: var(--color-gray-13);
+      font-family: var(--font-body);
+      line-height: 1.5;
+    }
+
+    .max-width { margin-left: auto; margin-right: auto; max-width: 100rem; }
+
+    main { display: grid; grid-template-rows: minmax(min-content, 60vh) auto auto; }
+
+    /* ============================================================
+       HERO
+       ============================================================ */
+    .hero {
+      display: flex;
+      padding: 2rem var(--main-padding-h, 1.5rem) 0;
+      background-color: var(--color-charcoal);
+      color: var(--color-white);
+    }
+
+    .hero__inner {
+      display: grid;
+      grid-template-rows: max-content 1fr max-content;
+      grid-template-columns: minmax(min-content, 30rem) 1fr;
+      grid-template-areas: 'logo logo' 'main image' 'clients clients';
+      flex-grow: 1;
+    }
+
+    .hero__logo  { grid-area: logo; }
+    .hero__main  { display: flex; grid-area: main; flex-direction: column; justify-content: center; margin-bottom: 3rem; }
+    .hero__image { grid-area: image; display: flex; justify-content: center; align-items: center; }
+
+    .device-image { display: none; }
+    div[id*="os-"] { position: relative; display: none; }
+
+    h1 { margin: 0.67em 0; line-height: 1.3; font-size: clamp(2rem, 5vw, 3rem); }
+    p  { margin: 1em 0; }
+
+    .logo { display: block; width: 6.25rem; }
+
+    /* ============================================================
+       BUTTONS & LINKS
+       ============================================================ */
+    .button {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 0.5em 1.5em;
+      background-color: var(--color-french-blue);
+      border-radius: 0.25rem;
+      border-style: none;
+      color: var(--color-white);
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 1.25rem;
+      text-decoration: none;
+    }
+
+    .button--small { margin-top: 0; font-size: 1rem; }
+    .lite-text     { font-size: 0.8125rem; top: calc(100% - 0.5rem); position: absolute; }
+    .link          { color: var(--color-french-blue); text-decoration: underline; }
+
+    /* ============================================================
+       OS TABS / SELECT
+       ============================================================ */
+    .tabs, .select-wrapper { grid-area: clients; }
+    .tabs  { display: none; }
+    .select__wrapper { display: flex; }
+
+    .tab, .select {
+      --focus-offset: -0.25rem;
+      margin: 0; padding: 0.75rem 2rem;
+      background-color: transparent; border-style: none;
+      border-radius: 0.25rem 0.25rem 0 0;
+      color: inherit; cursor: pointer;
+      font-family: var(--font-body); font-size: 1rem; text-align: center;
+    }
+
+    .tab:hover { background-color: rgba(255,255,255,.1); }
+
+    .select {
+      padding-right: 3em; appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Ctitle%3Edown-arrow%3C%2Ftitle%3E%3Cg%20fill%3D%22%23000000%22%3E%3Cpath%20d%3D%22M10.293%2C3.293%2C6%2C7.586%2C1.707%2C3.293A1%2C1%2C0%2C0%2C0%2C.293%2C4.707l5%2C5a1%2C1%2C0%2C0%2C0%2C1.414%2C0l5-5a1%2C1%2C0%2C1%2C0-1.414-1.414Z%22%20fill%3D%22%23000000%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+      background-size: .6em; background-position: calc(100% - 1em) center; background-repeat: no-repeat;
+    }
+
+    .select, .tab.is-active { background-color: var(--color-white); color: var(--color-gray-13); }
+
+    /* ============================================================
+       3-STEP TABPANEL
+       ============================================================ */
+    .tabpanel {
+      display: grid; row-gap: 1rem;
+      padding: 2rem var(--main-padding-h, 1.5rem) 1rem;
+    }
+
+    .step__heading { display: flex; align-items: center; }
+
+    .step__circle {
+      display: flex; justify-content: center; align-items: center;
+      height: 2.5rem; width: 2.5rem; margin-right: 1rem;
+      background-color: var(--color-charcoal); border-radius: 50%;
+      color: var(--color-white); text-align: center;
+    }
+
+    [data-install] { display: none; }
+
+    /* ============================================================
+       MODAL
+       ============================================================ */
+    .overlay {
+      position: fixed; left: 0; top: 0;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      height: 100%; width: 100%;
+      background-color: rgba(0,0,0,0.8); z-index: 1000;
+    }
+
+    .modal {
+      position: relative; width: 30rem; max-width: 90vw;
+      background-color: var(--color-white); border-radius: 0.25rem;
+      box-shadow: 0.25rem 0.25rem 0.25rem rgba(0,0,0,0.5); z-index: 2;
+    }
+
+    .modal__content   { padding: var(--modal-padding-h, 1rem) var(--modal-padding-v, 1.5rem); }
+    .modal__heading   { margin: 0; font-size: 1.25rem; }
+    .modal__toolbar   { position: absolute; right: 0.25rem; top: 0.25rem; }
+
+    .modal__close {
+      display: flex; justify-content: center; align-items: center;
+      width: 2rem; height: 2rem; padding: 0.25rem;
+      text-align: center; color: inherit; border-radius: 50%;
+    }
+
+    .modal__close:hover { background-color: rgba(0,0,0,.08); }
+    .modal__close svg   { display: block; height: 1rem; width: 1rem; }
+    .controller-url     { font-size: 0.875rem; user-select: all; word-break: break-all; }
+
+    /* ============================================================
+       CLI DEPLOY SECTION
+       ============================================================ */
+    .deploy-section {
+      background-color: var(--color-light-bg);
+      border-top: 3px solid var(--color-charcoal);
+      padding: 2.5rem var(--main-padding-h, 1.5rem);
+    }
+
+    .deploy-section__title    { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.25rem; color: var(--color-charcoal); }
+    .deploy-section__subtitle { color: #666; margin: 0 0 2rem; font-size: 0.9375rem; }
+
+    /* Profile URL inputs */
+    .profile-inputs  { display: grid; gap: 1rem; margin-bottom: 2rem; }
+
+    .profile-field label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #555;
+      margin-bottom: 0.375rem;
+    }
+
+    .profile-field input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.5rem 0.75rem;
+      border: 1.5px solid var(--color-border);
+      border-radius: 0.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      color: var(--color-gray-13);
+      background: var(--color-white);
+      transition: border-color 0.15s;
+    }
+
+    .profile-field input:focus {
+      outline: none;
+      border-color: var(--color-french-blue);
+      box-shadow: 0 0 0 3px rgba(0,114,186,0.12);
+    }
+
+    .profile-field .field-hint { font-size: 0.75rem; color: #888; margin-top: 0.25rem; }
+
+    /* Version row — wraps both the dropdown/input and the download link */
+    .version-input-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .version-input-row input {
+      max-width: 10rem;
+      box-sizing: border-box;
+      padding: 0.35rem 0.75rem;
+      border: 1.5px solid var(--color-border);
+      border-radius: 0.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      color: var(--color-gray-13);
+      background: var(--color-white);
+      transition: border-color 0.15s;
+    }
+
+    .version-input-row input:focus {
+      outline: none;
+      border-color: var(--color-french-blue);
+      box-shadow: 0 0 0 3px rgba(0,114,186,0.12);
+    }
+
+    .version-input-row input.is-invalid {
+      border-color: #c0392b;
+      box-shadow: 0 0 0 3px rgba(192,57,43,0.12);
+    }
+
+    .version-download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8125rem;
+      color: var(--color-french-blue);
+      text-decoration: none;
+      white-space: nowrap;
+      opacity: 0.4;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+
+    .version-download-link.is-active { opacity: 1; pointer-events: auto; }
+    .version-download-link:hover     { text-decoration: underline; }
+    .version-download-link svg       { flex-shrink: 0; }
+
+    /* Version fetch status badge */
+    .version-fetch-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      margin-left: 0.6rem;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: none;
+      vertical-align: middle;
+      color: #888;
+    }
+
+    .version-fetch-status.is-loading { color: #888; }
+    .version-fetch-status.is-ok      { color: #27a85f; }
+    .version-fetch-status.is-warn    { color: #d97706; }
+
+    /* Version dropdown select */
+    #version-select {
+      padding: 0.35rem 2.5rem 0.35rem 0.75rem;
+      border: 1.5px solid var(--color-border);
+      border-radius: 0.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      color: var(--color-gray-13);
+      background: var(--color-white);
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cg%20fill%3D%22%23555%22%3E%3Cpath%20d%3D%22M10.293%2C3.293%2C6%2C7.586%2C1.707%2C3.293A1%2C1%2C0%2C0%2C0%2C.293%2C4.707l5%2C5a1%2C1%2C0%2C0%2C0%2C1.414%2C0l5-5a1%2C1%2C0%2C1%2C0-1.414-1.414Z%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+      background-size: 0.6em;
+      background-position: calc(100% - 0.85em) center;
+      background-repeat: no-repeat;
+      cursor: pointer;
+      min-width: 10rem;
+      transition: border-color 0.15s;
+    }
+
+    #version-select:focus {
+      outline: none;
+      border-color: var(--color-french-blue);
+      box-shadow: 0 0 0 3px rgba(0,114,186,0.12);
+    }
+
+    /* Deploy controls */
+    .deploy-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      align-items: flex-start;
+    }
+
+    .control-group       { display: flex; flex-direction: column; gap: 0.25rem; }
+
+    .control-group__label {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #555;
+      margin-bottom: 0.25rem;
+    }
+
+    /* Radio pills */
+    .radio-pills { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+
+    .radio-pills input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+
+    .radio-pills label {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.35rem 0.9rem;
+      border: 1.5px solid var(--color-border);
+      border-radius: 2rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+      background: var(--color-white);
+      color: #555;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .radio-pills input[type="radio"]:checked + label {
+      background-color: var(--color-charcoal);
+      border-color: var(--color-charcoal);
+      color: var(--color-white);
+      font-weight: 600;
+    }
+
+    .radio-pills label:hover { border-color: var(--color-charcoal); color: var(--color-charcoal); }
+    .radio-pills input[type="radio"]:checked + label:hover { color: var(--color-white); }
+
+    #win-shell-group  { display: none; }
+    #win-flags-group  { display: none; }
+    #unix-flags-group { display: none; }
+
+    /* Flags grid */
+    .flags-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+      gap: 0.5rem 2rem;
+      margin-top: 0.25rem;
+    }
+
+    .flag-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: #444;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .flag-item input[type="checkbox"] {
+      width: 1rem;
+      height: 1rem;
+      accent-color: var(--color-charcoal);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .flag-item select {
+      padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+      border: 1.5px solid var(--color-border);
+      border-radius: 0.25rem;
+      font-family: var(--font-body);
+      font-size: 0.8125rem;
+      color: var(--color-gray-13);
+      background: var(--color-white);
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cg%20fill%3D%22%23555%22%3E%3Cpath%20d%3D%22M10.293%2C3.293%2C6%2C7.586%2C1.707%2C3.293A1%2C1%2C0%2C0%2C0%2C.293%2C4.707l5%2C5a1%2C1%2C0%2C0%2C0%2C1.414%2C0l5-5a1%2C1%2C0%2C1%2C0-1.414-1.414Z%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+      background-size: 0.55em;
+      background-position: calc(100% - 0.5em) center;
+      background-repeat: no-repeat;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .flag-item select:focus {
+      outline: none;
+      border-color: var(--color-french-blue);
+      box-shadow: 0 0 0 3px rgba(0,114,186,0.12);
+    }
+
+    /* Command output */
+    #deploy-commands-output { display: flex; flex-direction: column; gap: 1.25rem; }
+
+    .cmd-section-header {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-charcoal);
+      margin: 1rem 0 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .cmd-instruction      { font-size: 0.9rem; color: #444; margin: 0; line-height: 1.6; }
+    .cmd-instruction code { background: #e8eaf0; padding: 0.1em 0.35em; border-radius: 3px; font-family: var(--font-mono); font-size: 0.85em; }
+    .cmd-instruction a    { color: var(--color-french-blue); }
+
+    .cmd-block {
+      border-radius: 0.375rem;
+      overflow: hidden;
+      border: 1px solid #2d3250;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+
+    .cmd-block__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0.875rem;
+      background-color: #2a2f4a;
+    }
+
+    .cmd-block__title {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #8ca0c8;
+      font-family: var(--font-mono);
+      letter-spacing: 0.02em;
+    }
+
+    .cmd-copy-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.25rem 0.6rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 0.25rem;
+      color: #a0b0d0;
+      font-size: 0.8rem;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .cmd-copy-btn:hover  { background: rgba(255,255,255,0.15); color: #fff; }
+    .cmd-copy-btn.copied { color: #6dd86d; border-color: #6dd86d; }
+
+    .cmd-block__code {
+      margin: 0;
+      padding: 1rem 1.125rem;
+      background-color: var(--color-code-bg);
+      overflow-x: auto;
+    }
+
+    .cmd-block__code code {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.825rem;
+      line-height: 1.7;
+      color: var(--color-code-text);
+      white-space: pre;
+    }
+
+    .cmd-note {
+      padding: 0.5rem 0.875rem;
+      background-color: #2a2f4a;
+      border-top: 1px solid #3d4468;
+      font-size: 0.8125rem;
+      color: #aab8d8;
+      font-style: italic;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media all and (min-width: 680px) {
+      :root { --main-padding-h: 4rem; --modal-padding-v: 3rem; --modal-padding-h: 2rem; }
+    }
+
+    @media all and (min-width: 1024px) {
+      .device-image { display: block; max-width: 30rem; height: 100%; }
+      .tabpanel { grid-template-columns: repeat(3, 1fr); column-gap: 4rem; }
+      .tabs { display: flex; list-style-type: none; padding: 0; margin: 0; }
+      .step { position: relative; }
+      .step:not(:last-child)::after {
+        content: ""; position: absolute; top: 0; bottom: 0; right: -2rem;
+        display: block; width: 1px; background-color: var(--color-silver);
+      }
+      .select__wrapper { display: none; }
+    }
+
+    @media all and (min-width: 1200px) {
+      .device-image { max-width: 32rem; }
+    }
+
+    /* ============================================================
+       CLI SECTION — collapsible
+       ============================================================ */
+    .deploy-section__toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      text-align: left;
+      color: inherit;
+      font-family: var(--font-body);
+    }
+
+    .deploy-section__toggle:focus-visible {
+      outline: var(--focus-outline);
+      outline-offset: var(--focus-offset);
+      border-radius: 0.25rem;
+    }
+
+    .deploy-section__toggle-text {
+      /* title + subtitle stacked */
+    }
+
+    .deploy-section__chevron {
+      flex-shrink: 0;
+      margin-left: 1rem;
+      color: var(--color-charcoal);
+      transition: transform 0.3s ease;
+    }
+
+    .deploy-section.is-open .deploy-section__chevron {
+      transform: rotate(180deg);
+    }
+
+    .deploy-section__body {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.4s ease, opacity 0.3s ease;
+    }
+
+    .deploy-section.is-open .deploy-section__body {
+      max-height: 9999px; /* large enough for any content */
+      opacity: 1;
+    }
+
+  </style>
+</head>
+
+<body>
+<main>
+
+  <!-- ============================================================
+       HERO
+       ============================================================ -->
+  <div class="hero">
+    <div class="hero__inner max-width">
+
+      <!-- Logo -->
+      <div class="hero__logo">
+        <svg class="logo" role="img" fill="none" viewBox="0 0 100 25">
+          <path fill="#fff" d="M23.972 4.07c-3.79 0-6.875 3.046-6.875 6.789v12.003l2.556 1.183v-7.879a6.9 6.9 0 0 0 4.322 1.524c3.79 0 6.874-3.064 6.874-6.831s-3.085-6.79-6.875-6.79zm4.32 6.789c0 2.36-1.938 4.28-4.32 4.28s-4.322-1.92-4.322-4.28S21.59 6.6 23.972 6.6s4.32 1.91 4.32 4.258m10.392-6.79c-3.79 0-6.874 3.047-6.874 6.79v12.003l2.555 1.183v-7.879a6.9 6.9 0 0 0 4.322 1.524c3.79 0 6.874-3.064 6.874-6.831s-3.085-6.79-6.874-6.79zm4.318 6.79c0 2.36-1.939 4.28-4.321 4.28-2.383 0-4.321-1.92-4.321-4.28S36.298 6.6 38.68 6.6s4.322 1.91 4.322 4.258m28.725-6.79c-3.79 0-6.874 3.056-6.874 6.81s3.084 6.808 6.874 6.808c1.56 0 3.082-.532 4.321-1.507v1.048l2.553 1.29v-7.64c0-3.753-3.084-6.808-6.874-6.808m4.321 6.81c0 2.359-1.939 4.28-4.321 4.28s-4.321-1.921-4.321-4.28 1.939-4.258 4.321-4.258 4.321 1.909 4.321 4.257m9.211 4.28h.879v2.528h-.879c-2.561 0-4.645-2.064-4.645-4.601V6.66h-1.663V4.13h1.663V.283l2.576 1.264v2.585h1.745v2.531H83.19v6.426c0 1.14.927 2.07 2.07 2.07m7.702-11.09c-3.79 0-6.874 3.056-6.874 6.81s3.084 6.808 6.874 6.808a6.87 6.87 0 0 0 6.12-3.714l.123-.234h-3.05l-.049.05a4.26 4.26 0 0 1-3.144 1.347c-1.894 0-3.56-1.222-4.12-2.993h10.863l.023-.133q.107-.602.108-1.132c0-3.753-3.085-6.808-6.874-6.808m0 2.53c1.913 0 3.579 1.23 4.122 3.012h-8.244c.545-1.785 2.211-3.013 4.122-3.013M9.39.482l6.692 17.204h-2.747l-1.745-4.522H5.675l.989-2.532H10.6L8.122 4.278l-5.21 13.409H.164L6.897.38H9.35zm46.672 8.714h7.894l-.005.166c-.174 4.669-4.006 8.324-8.728 8.324s-8.748-3.877-8.748-8.645 3.926-8.66 8.75-8.66c3.591 0 6.773 2.133 8.106 5.436l.088.22h-2.815l-.048-.079a6.22 6.22 0 0 0-5.33-3.046c-3.415 0-6.192 2.75-6.192 6.135s2.777 6.113 6.192 6.113c2.368 0 4.514-1.337 5.535-3.432h-5.689z"/>
+        </svg>
+      </div>
+
+      <!-- Hero main — headline + download button -->
+      <div class="hero__main" aria-live="polite">
+        <h1>Download the<br />Appgate SDP Client</h1>
+        <p>Connect from anywhere on any device to anything, anytime with fast, secure Zero Trust Network Access.</p>
+        <div id="os-windows" data-button><a class="button" data-linkid="windows">Download for Windows</a></div>
+        <div id="os-macos"   data-button><a class="button" data-linkid="macos">Download for macOS</a></div>
+        <div id="os-android" data-button><a class="button" href="https://play.google.com/store/apps/details?id=com.cryptzone.appgate.xdp&hl=en">Download for Android</a></div>
+        <div id="os-ios"     data-button><a class="button" href="https://apps.apple.com/app/appgate-sdp-client/id1634405755">Download for iOS</a></div>
+        <div id="os-ubuntu"  data-button><a class="button" data-linkid="ubuntu">Download for Ubuntu</a></div>
+        <div id="os-fedora"  data-button><a class="button" data-linkid="fedora">Download for Fedora</a></div>
+        <div id="os-rhel8"   data-button><a class="button" data-linkid="rhel8">Download for RHEL 8</a></div>
+      </div>
+
+      <!-- Hero image -->
+      <div class="hero__image">
+        <svg role="img" class="device-image" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 515 268">
+          <path fill="#000" d="M257.05 267.45c141.965 0 257.05-18.8 257.05-41.99s-115.085-41.99-257.05-41.99S0 202.27 0 225.46s115.085 41.99 257.05 41.99"/>
+          <path fill="#231f20" d="M130.76 16.63h322.23c1.56 0 2.83 1.27 2.83 2.83v188.29H127.93V19.47c0-1.56 1.27-2.83 2.83-2.83z"/>
+          <path fill="#0273ba" d="M449.31 23.95H134.45v176.26h314.86z"/>
+          <path fill="url(#svg-grad-a)" d="M449.31 79.31c-127.85 19.25-234.61 65.98-314.86 116.9V23.95h314.86z"/>
+          <path fill="#d1d3d4" d="M114.98 207.76h353.8v3.74c0 4.69-3.81 8.5-8.5 8.5h-336.8c-4.69 0-8.5-3.81-8.5-8.5z"/>
+          <path fill="#231f20" d="M56.2 5.39v140.74a5.4 5.4 0 0 0 5.4 5.4h201.77a5.4 5.4 0 0 0 5.4-5.4V5.39a5.4 5.4 0 0 0-5.4-5.4H61.6a5.4 5.4 0 0 0-5.4 5.4"/>
+          <path fill="#e6e7e8" d="M63.78 10.5v130.53a3.06 3.06 0 0 0 3.06 3.06H258a3.06 3.06 0 0 0 3.06-3.06V10.5A3.06 3.06 0 0 0 258 7.44H66.84a3.06 3.06 0 0 0-3.06 3.06"/>
+          <path fill="url(#svg-grad-c)" d="M261.05 49.47c-80.11 14.62-147 50.09-197.28 88.74V7.44h197.28z"/>
+          <path fill="#3b4053" d="M66.78 7.44h191.28c1.66 0 3 1.35 3 3v16.84H63.77V10.45c0-1.66 1.35-3 3-3z"/>
+          <path fill="#231f20" d="M96.07 96.21H47.63a6.78 6.78 0 0 0-6.78 6.78v113.2a6.78 6.78 0 0 0 6.78 6.78h48.44a6.78 6.78 0 0 0 6.78-6.78v-113.2a6.78 6.78 0 0 0-6.78-6.78"/>
+          <path fill="#e6e7e8" d="M95.41 99.29H48.29a4.54 4.54 0 0 0-4.54 4.54v111.63a4.54 4.54 0 0 0 4.54 4.54h47.12a4.54 4.54 0 0 0 4.54-4.54V103.83a4.54 4.54 0 0 0-4.54-4.54"/>
+          <path fill="#3b4053" d="M48.28 99.29h47.13c2.5 0 4.54 2.03 4.54 4.54v15.31H43.74v-15.31c0-2.5 2.03-4.54 4.54-4.54"/>
+          <defs>
+            <linearGradient id="svg-grad-a" x1="256.205" x2="256.205" y1="4.795" y2="270.396" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#fff" stop-opacity="0"/>
+              <stop offset=".42" stop-color="#fff" stop-opacity=".38"/>
+              <stop offset="1" stop-color="#fff"/>
+            </linearGradient>
+            <linearGradient id="svg-grad-c" x1="251.163" x2="251.163" y1="3.258" y2="273.333" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#fff" stop-opacity="0"/>
+              <stop offset=".42" stop-color="#fff" stop-opacity=".38"/>
+              <stop offset="1" stop-color="#fff"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- OS tabs (desktop) -->
+      <ul class="tabs" aria-label="All clients">
+        <li><button class="tab" data-tab="os-windows" onclick="changeOs('windows')">Windows</button></li>
+        <li><button class="tab" data-tab="os-macos"   onclick="changeOs('macos')">macOS</button></li>
+        <li><button class="tab" data-tab="os-android" onclick="changeOs('android')">Android</button></li>
+        <li><button class="tab" data-tab="os-ios"     onclick="changeOs('ios')">iOS</button></li>
+        <li><button class="tab" data-tab="os-ubuntu"  onclick="changeOs('ubuntu')">Ubuntu</button></li>
+        <li><button class="tab" data-tab="os-fedora"  onclick="changeOs('fedora')">Fedora</button></li>
+        <li><button class="tab" data-tab="os-rhel8"   onclick="changeOs('rhel8')">RHEL 8</button></li>
+      </ul>
+
+      <!-- OS select (mobile) -->
+      <div class="select__wrapper">
+        <select class="select" id="os-selector" onchange="selectUpdate()" aria-label="Change client">
+          <option value="windows">Windows</option>
+          <option value="macos">macOS</option>
+          <option value="android">Android</option>
+          <option value="ios">iOS</option>
+          <option value="ubuntu">Ubuntu</option>
+          <option value="fedora">Fedora</option>
+          <option value="rhel8">RHEL 8</option>
+        </select>
+      </div>
+
+    </div>
+  </div><!-- /hero -->
+
+  <!-- ============================================================
+       3-STEP INSTALL PANEL
+       ============================================================ -->
+  <div class="tabpanel max-width">
+    <div class="step">
+      <h2 class="step__heading"><span class="step__circle">1</span>Install</h2>
+      <p id="install-desktop" data-install>When the download is finished, install the client. For detailed instructions, see the <a class="link" href="https://support.appgate.com/docs/installation-v6-6">Appgate SDP Installation Guide</a>.</p>
+      <p id="install-ios"     data-install>Download and install the client through the App Store.</p>
+      <p id="install-android" data-install>Download and install the client through Google Play.</p>
+    </div>
+    <div class="step">
+      <h2 class="step__heading"><span class="step__circle">2</span>Configure</h2>
+      <p>Start the client. Press the button below to automatically configure the client by adding a profile.</p>
+      <a class="button button--small" data-linkid="controller">Add profile</a>
+      <p>If the configuration is not added automatically, follow the instructions in the client to use a profile link. <a class="link" href="javascript:showManualConfig()">Copy profile link</a></p>
+    </div>
+    <div class="step">
+      <h2 class="step__heading"><span class="step__circle">3</span>Connect</h2>
+      <p>Sign in to the client to securely access your resources. For further information on how to use the client, see the <a class="link" href="https://support.appgate.com/docs/welcome-v6-6">Appgate SDP Manual</a>.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       CLI DEPLOYMENT SECTION — collapsed by default
+       ============================================================ -->
+  <section class="deploy-section" id="deploy-section">
+    <div class="max-width">
+
+      <!-- Clickable header — toggles the collapsible body -->
+      <button class="deploy-section__toggle"
+              onclick="toggleDeploySection()"
+              aria-expanded="false"
+              aria-controls="deploy-section-body">
+        <div class="deploy-section__toggle-text">
+          <h2 class="deploy-section__title">CLI Configuration</h2>
+          <p class="deploy-section__subtitle">Generate installation and configuration commands for automated or silent deployments.</p>
+        </div>
+        <svg class="deploy-section__chevron" width="22" height="22" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+
+      <!-- Collapsible body — hidden until the user expands it -->
+      <div class="deploy-section__body" id="deploy-section-body">
+        <div style="padding-top:1.5rem;">
+
+      <!-- Profile URLs pulled from site config (editable here too) -->
+      <div class="profile-inputs">
+        <div class="profile-field">
+          <label for="full-profile-input">Full Client Profile URL</label>
+          <input type="text" id="full-profile-input" placeholder="appgate://ctrl.example.com/ABC123==" oninput="renderDeployCommands()" />
+          <div class="field-hint">Used for Full and Always-On client deployments</div>
+        </div>
+        <div class="profile-field">
+          <label for="headless-profile-input">Headless / Always-On Profile URL</label>
+          <input type="text" id="headless-profile-input" placeholder="appgate://ctrl.example.com/HEADLESS123==" oninput="renderDeployCommands()" />
+          <div class="field-hint">Used for Headless and Always-On service configuration</div>
+        </div>
+      </div>
+
+      <!-- Hidden field — tracks the OS currently selected in the hero tabs.
+           Updated by changeOs(); read by getDeployOs() instead of a radio group. -->
+      <input type="hidden" id="deploy-os-value" value="windows" />
+
+      <!-- Deploy controls -->
+      <div class="deploy-controls">
+
+        <div class="control-group">
+          <div class="control-group__label">Deployment Type</div>
+          <div class="radio-pills">
+            <input type="radio" name="deploy-type" id="type-full"      value="full"      checked onchange="onDeployControlChange()">
+            <label for="type-full">Full Client</label>
+            <input type="radio" name="deploy-type" id="type-headless"  value="headless"  onchange="onDeployControlChange()">
+            <label for="type-headless">Headless</label>
+            <input type="radio" name="deploy-type" id="type-alwayson"  value="always-on" onchange="onDeployControlChange()">
+            <label for="type-alwayson">Always-On</label>
+            <input type="radio" name="deploy-type" id="type-uninstall" value="uninstall" onchange="onDeployControlChange()">
+            <label for="type-uninstall">Uninstall</label>
+          </div>
+        </div>
+
+        <div class="control-group" id="win-shell-group">
+          <div class="control-group__label">Windows Shell</div>
+          <div class="radio-pills">
+            <input type="radio" name="win-shell" id="shell-cmd" value="cmd"        checked onchange="renderDeployCommands()">
+            <label for="shell-cmd">CMD</label>
+            <input type="radio" name="win-shell" id="shell-ps"  value="powershell" onchange="renderDeployCommands()">
+            <label for="shell-ps">PowerShell</label>
+          </div>
+        </div>
+
+        <!-- Windows install flags -->
+        <div class="control-group" id="win-flags-group" style="width:100%;">
+          <div class="control-group__label">Client Install Flags</div>
+          <div class="flags-grid">
+            <label class="flag-item"><input type="checkbox" id="flag-disablescripts"       onchange="renderDeployCommands()"><span>Disable Scripts</span></label>
+            <label class="flag-item"><input type="checkbox" id="flag-autostartall"          onchange="renderDeployCommands()"><span>Auto Start</span></label>
+            <label class="flag-item"><input type="checkbox" id="flag-disableuseracceptance" onchange="renderDeployCommands()"><span>Disable User Acceptance</span></label>
+            <label class="flag-item"><input type="checkbox" id="flag-setsignedin"           onchange="renderDeployCommands()"><span>Keep Signed In</span></label>
+            <label class="flag-item"><input type="checkbox" id="flag-niap"                  onchange="renderDeployCommands()"><span>Enable NIAP Protection Mode</span></label>
+            <div class="flag-item">
+              <select id="flag-attentionmode" onchange="renderDeployCommands()">
+                <option value="">— not set —</option>
+                <option value="0">0 — Low</option>
+                <option value="1">1 — Normal</option>
+                <option value="2">2 — High</option>
+              </select>
+              <span>Attention Mode</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- macOS / Linux client flags -->
+        <div class="control-group" id="unix-flags-group" style="width:100%;">
+          <div class="control-group__label">Client Install Flags</div>
+          <div class="flags-grid">
+            <label class="flag-item"><input type="checkbox" id="flag-unix-eula"    checked onchange="renderDeployCommands()"><span>Disable EULA</span></label>
+            <label class="flag-item"><input type="checkbox" id="flag-unix-profile" checked onchange="renderDeployCommands()"><span>Set Client Profile(s)</span></label>
+            <label class="flag-item" id="flag-unix-scripts-item"><input type="checkbox" id="flag-unix-scripts" onchange="renderDeployCommands()"><span>Disable Scripts</span></label>
+            <div class="flag-item">
+              <select id="flag-unix-attention" onchange="renderDeployCommands()">
+                <option value="">— not set —</option>
+                <option value="0">0 — Low</option>
+                <option value="1">1 — Normal</option>
+                <option value="2">2 — High</option>
+              </select>
+              <span>Attention Level</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Client version — moved below install flags -->
+        <div class="control-group" style="width:100%;">
+          <div class="control-group__label">
+            Client Version
+            <span id="version-fetch-status" class="version-fetch-status"></span>
+          </div>
+
+          <!-- Populated from client.json — shown when fetch succeeds -->
+          <div id="version-dropdown-row" class="version-input-row" style="display:none;">
+            <select id="version-select" onchange="onVersionSelectChange()">
+              <option value="">Loading versions…</option>
+            </select>
+            <a id="version-download-link-select" class="version-download-link" href="#" target="_blank" rel="noopener">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download installer
+            </a>
+          </div>
+
+          <!-- Fallback shown when fetch fails (file:// CORS block or offline) -->
+          <div id="version-manual-row" class="version-input-row">
+            <input type="text" id="code-version-input" placeholder="e.g. 6.5.10" oninput="onVersionInput()" />
+            <a id="version-download-link" class="version-download-link" href="#" target="_blank" rel="noopener">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download installer
+            </a>
+          </div>
+        </div>
+
+      </div><!-- /deploy-controls -->
+
+      <div id="deploy-commands-output"></div>
+
+        </div><!-- /inner padding wrapper -->
+      </div><!-- /deploy-section__body -->
+
+    </div>
+  </section>
+
+</main>
+
+<noscript>You need a modern browser with JavaScript in order to use this page.</noscript>
+
+<script>
+"use strict";
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║  SITE CONFIGURATION — edit this block to match your env     ║
+   ║                                                              ║
+   ║  controller       — full-client appgate:// profile URL       ║
+   ║  headless_profile — headless / always-on profile URL         ║
+   ║  windows          — latest Windows full-client installer URL ║
+   ║  windows-lite     — latest Windows lite-client installer URL ║
+   ║  macos            — latest macOS installer URL               ║
+   ║  ubuntu           — latest Ubuntu .deb installer URL         ║
+   ║  fedora           — latest Fedora .rpm installer URL         ║
+   ║  rhel8            — latest RHEL 8 .rpm installer URL         ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+
+var links = {
+  "controller":       "appgate://conn.example.com/fullclientprofile==",
+  "headless_profile": "appgate://conn.example.com/headlessprofile==",
+  "windows":          "https://bin.appgate-sdp.com/latest/windows/AppGate-SDP-client.exe",
+  "windows-lite":     "https://bin.appgate-sdp.com/latest/windows/AppGate-SDP-lite-client.exe",
+  "macos":            "https://bin.appgate-sdp.com/latest/macos/AppGate-SDP-client.dmg",
+  "ubuntu":           "https://bin.appgate-sdp.com/latest/ubuntu/AppGate-SDP-client.deb",
+  "fedora":           "https://bin.appgate-sdp.com/latest/fedora/AppGate-SDP-client.rpm",
+  "rhel8":            "https://bin.appgate-sdp.com/latest/rhel8/AppGate-SDP-client.rpm"
+};
+
+
+
+
+
+
+
+/* ============================================================
+   CLI SECTION — expand / collapse
+   ============================================================ */
+
+/* Toggle the CLI Configuration section open or closed. */
+function toggleDeploySection() {
+  var section = document.getElementById("deploy-section");
+  var btn     = section.querySelector(".deploy-section__toggle");
+  var isOpen  = section.classList.contains("is-open");
+
+  section.classList.toggle("is-open", !isOpen);
+  btn.setAttribute("aria-expanded", String(!isOpen));
+}
+
+/* Open the CLI section programmatically (e.g. called from boot if needed). */
+function openDeploySection() {
+  var section = document.getElementById("deploy-section");
+  var btn     = section.querySelector(".deploy-section__toggle");
+  section.classList.add("is-open");
+  btn.setAttribute("aria-expanded", "true");
+}
+
+/* ============================================================
+   LINK RESOLUTION & DOM REFRESH
+   ============================================================ */
+
+/* Apply runtime links to all [data-linkid] elements in the DOM. */
+function refreshAllLinks() {
+  document.querySelectorAll("[data-linkid]").forEach(function(elem) {
+    var href = links[elem.dataset.linkid];
+    if (!href) return;
+    if (elem.tagName === "A")    elem.href        = href;
+    if (elem.tagName === "SPAN") elem.textContent = href;
+  });
+}
+
+/* Resolve the correct links key for a deploy-OS radio value. */
+function linksKeyForOs(os) {
+  if (os === "rhel") return "rhel8";
+  return os; /* windows, macos, ubuntu, fedora map directly */
+}
+
+/* Returns just the filename portion from a full URL. */
+function filenameFromUrl(url) {
+  return url.split("/").pop();
+}
+
+/* Handle the ?lite query string: swap the Windows URL to the lite build. */
+function applyLiteMode() {
+  var isLite = window.location.search.replace("?", "").split("&").includes("lite");
+  if (!isLite) return;
+
+  links["windows"] = links["windows-lite"];
+  var liteNote = document.createElement("p");
+  liteNote.classList.add("lite-text");
+  liteNote.textContent = "This will download the Lite version of the client";
+  document.getElementById("os-windows").appendChild(liteNote);
+}
+
+/* Sync the CLI section's profile URL inputs from the current links config. */
+function syncCliProfileInputsFromConfig() {
+  document.getElementById("full-profile-input").value     = links["controller"]       || "";
+  document.getElementById("headless-profile-input").value = links["headless_profile"] || "";
+}
+
+
+/* ============================================================
+   VERSION HELPERS — pure utility functions, no DOM access
+   ============================================================ */
+
+var VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
+
+/* Returns the selected/entered version string, or "x.y.z" as a sentinel. */
+function getVersion() {
+  /* Prefer dropdown when it is visible and has a real selection */
+  var dropRow = document.getElementById("version-dropdown-row");
+  if (dropRow && dropRow.style.display !== "none") {
+    var sel = document.getElementById("version-select");
+    return (sel && sel.value) ? sel.value : "x.y.z";
+  }
+  /* Fallback: manual text input */
+  var raw = document.getElementById("code-version-input").value.trim();
+  return (raw && VERSION_PATTERN.test(raw)) ? raw : "x.y.z";
+}
+
+/* "6.5.10" → "6.5" */
+function getMajorMinor(version) {
+  if (version === "x.y.z") return "x.y";
+  var parts = version.split(".");
+  return parts[0] + "." + parts[1];
+}
+
+/* Returns the installer filename for a given version + extension + OS.
+   Prefers the exact filename from the live catalog (handles distro-specific
+   naming like appgate-sdp_6.5.4_amd64.deb). Falls back to a constructed name
+   or the filename already baked into links{}. */
+function getInstallerFilename(version, ext, os) {
+  /* Try to get the exact filename from the fetched catalog first */
+  if (version && version !== "x.y.z" && window._versionCatalog) {
+    var catalogUrl = getLinkFromCatalog(version, os, "full");
+    if (catalogUrl) return filenameFromUrl(catalogUrl);
+  }
+  /* Constructed fallback — works for Windows and macOS which use consistent naming */
+  if (version && version !== "x.y.z") {
+    return "Appgate-SDP-" + version + "-Installer." + ext;
+  }
+  /* No version at all — use whatever is in links{} */
+  var key = os ? linksKeyForOs(os) : null;
+  if (key && links[key]) return filenameFromUrl(links[key]);
+  return "Appgate-SDP-client." + ext;
+}
+
+/* Builds the full download URL for a version + extension + OS.
+   Prefers the exact catalog URL; falls back to a constructed URL or latest. */
+function buildDownloadUrl(version, ext, os) {
+  /* No version sentinel — use the latest link from links{} */
+  if (!version || version === "x.y.z") {
+    var key = os ? linksKeyForOs(os) : null;
+    return (key && links[key])
+      ? links[key]
+      : "https://bin.appgate-sdp.com/latest/" + (os || "client") + "/AppGate-SDP-client." + ext;
+  }
+  /* Specific version — prefer exact catalog URL, then construct one */
+  if (window._versionCatalog) {
+    var catalogUrl = getLinkFromCatalog(version, os, "full");
+    if (catalogUrl) return catalogUrl;
+  }
+  var filename = getInstallerFilename(version, ext, os);
+  return "https://bin.appgate-sdp.com/" + getMajorMinor(version) + "/client/" + filename;
+}
+
+/* Returns the correct installer extension for the currently active deploy OS. */
+function getInstallerExt() {
+  var os = getDeployOs();
+  if (os === "windows") return "exe";
+  if (os === "macos")   return "dmg";
+  if (os === "ubuntu")  return "deb";
+  return "rpm";
+}
+
+/* Returns the direct download link for a specific version from the catalog,
+   matched by OS (and optionally type). Returns null if not found. */
+function getLinkFromCatalog(version, os, type) {
+  if (!window._versionCatalog) return null;
+  var releases = window._versionCatalog.releases || {};
+  var majorMinor = getMajorMinor(version);
+  var entries = releases[majorMinor] || [];
+  var deployOs = os; /* e.g. "windows", "macos", "ubuntu", "fedora", "rhel" */
+  /* Normalize: the deploy pill uses "rhel", the JSON uses "rhel8"/"rhel9" */
+  var matchOs = function(entry) {
+    if (deployOs === "rhel") return entry.os === "rhel8" || entry.os === "rhel9";
+    return entry.os === deployOs;
+  };
+  for (var i = 0; i < entries.length; i++) {
+    var e = entries[i];
+    if (e.version === version && matchOs(e) && (!type || e.type === type)) {
+      return e.link;
+    }
+  }
+  return null;
+}
+
+
+/* ============================================================
+   VERSION CATALOG — fetch client.json and build the dropdown
+   ============================================================ */
+
+var CLIENT_JSON_URL = "https://bin.appgate-sdp.com/latest/client.json";
+
+/* Sets the status badge beside the "Client Version" label. */
+function setVersionFetchStatus(msg, state) {
+  var el = document.getElementById("version-fetch-status");
+  el.textContent = msg;
+  el.className = "version-fetch-status " + (state ? "is-" + state : "");
+}
+
+/* Switch to dropdown mode: hide the manual input, show the select. */
+function showVersionDropdown() {
+  document.getElementById("version-dropdown-row").style.display = "";
+  document.getElementById("version-manual-row").style.display   = "none";
+}
+
+/* Switch to manual-input mode: hide the select, show the text field. */
+function showVersionManualInput() {
+  document.getElementById("version-dropdown-row").style.display = "none";
+  document.getElementById("version-manual-row").style.display   = "";
+}
+
+/* Build the <select> options from the fetched catalog.
+   Groups versions by major.minor with the latest listed first. */
+function populateVersionDropdown(catalog) {
+  var sel = document.getElementById("version-select");
+  sel.innerHTML = "";
+
+  /* Collect all unique versions in reverse release order */
+  var releases = catalog.releases || {};
+  var majorMinors = Object.keys(releases).sort().reverse(); /* e.g. ["6.5","6.4","6.3"] */
+  var seenVersions = {};
+
+  /* Placeholder */
+  var placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "— select a version —";
+  sel.appendChild(placeholder);
+
+  majorMinors.forEach(function(mm) {
+    var entries = releases[mm];
+    /* Collect unique version strings within this minor release */
+    var versions = [];
+    entries.forEach(function(e) {
+      if (!seenVersions[e.version]) {
+        seenVersions[e.version] = true;
+        versions.push(e.version);
+      }
+    });
+
+    /* Group under an <optgroup> labelled by major.minor */
+    var group = document.createElement("optgroup");
+    group.label = mm + " series";
+    versions.forEach(function(v) {
+      var opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      group.appendChild(opt);
+    });
+    sel.appendChild(group);
+  });
+
+  /* Pre-select the newest version */
+  if (sel.options.length > 1) sel.selectedIndex = 1;
+}
+
+/* Fetch client.json, cache it on window, populate the dropdown.
+   On any failure, fall back to the manual text input gracefully. */
+function fetchVersionCatalog() {
+  setVersionFetchStatus("fetching versions…", "loading");
+
+  fetch(CLIENT_JSON_URL)
+    .then(function(res) {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    })
+    .then(function(catalog) {
+      window._versionCatalog = catalog;
+      populateVersionDropdown(catalog);
+      showVersionDropdown();
+      setVersionFetchStatus("✓ live", "ok");
+      onVersionSelectChange(); /* trigger initial render + hero button update */
+    })
+    .catch(function(err) {
+      /* CORS block (file://) or network error — degrade gracefully */
+      showVersionManualInput();
+      setVersionFetchStatus("enter manually", "warn");
+      updateDownloadLink();   /* initialise the fallback link */
+    });
+}
+
+
+/* ============================================================
+   VERSION INPUT / SELECT EVENTS
+   ============================================================ */
+
+/* Updates the hero "Download for <OS>" button href to point to the catalog URL
+   for the currently selected version (when the dropdown is active).
+   Only Windows, macOS, Ubuntu, Fedora, and RHEL hero buttons can be updated
+   this way; Android and iOS always go to their respective stores. */
+function updateHeroDownloadButton() {
+  var sel = document.getElementById("version-select");
+  if (!sel || !sel.value) return; /* no version selected or dropdown not active */
+
+  var version = sel.value;
+  var extMap  = { windows: "exe", macos: "dmg", ubuntu: "deb", fedora: "rpm", rhel8: "rpm" };
+
+  Object.keys(extMap).forEach(function(os) {
+    var btn = document.querySelector("#os-" + os + " [data-linkid='" + os + "']");
+    if (!btn) return;
+    /* rhel8 pill is "rhel" internally but catalog uses "rhel8"/"rhel9" */
+    var catalogOs = (os === "rhel8") ? "rhel" : os;
+    var catalogUrl = getLinkFromCatalog(version, catalogOs, "full");
+    if (catalogUrl) btn.href = catalogUrl;
+  });
+}
+
+/* Fires when the version <select> changes. */
+function onVersionSelectChange() {
+  updateVersionDownloadLinkForSelect();
+  updateHeroDownloadButton();
+  renderDeployCommands();
+}
+
+/* Fires on every keystroke in the manual version text input. */
+function onVersionInput() {
+  var input = document.getElementById("code-version-input");
+  var raw   = input.value.trim();
+  var valid = raw === "" || VERSION_PATTERN.test(raw);
+  input.classList.toggle("is-invalid", !valid);
+  updateDownloadLink();
+  renderDeployCommands();
+}
+
+/* Update the download link anchor shown beside the version dropdown.
+   Tries to use the exact catalog URL; falls back to a constructed URL. */
+function updateVersionDownloadLinkForSelect() {
+  var sel     = document.getElementById("version-select");
+  var linkEl  = document.getElementById("version-download-link-select");
+  var version = sel ? sel.value : "";
+  var os      = getDeployOs();
+  var ext     = getInstallerExt();
+
+  if (!version) {
+    linkEl.href = "#";
+    linkEl.classList.remove("is-active");
+    return;
+  }
+
+  /* Prefer the exact URL from the catalog (correct filename casing etc.) */
+  var catalogUrl = getLinkFromCatalog(version, os, "full");
+  linkEl.href = catalogUrl || buildDownloadUrl(version, ext, os);
+  linkEl.classList.add("is-active");
+}
+
+/* Update the download link anchor shown beside the manual text input. */
+function updateDownloadLink() {
+  var input   = document.getElementById("code-version-input");
+  var linkEl  = document.getElementById("version-download-link");
+  var raw     = input.value.trim();
+  var valid   = VERSION_PATTERN.test(raw);
+  var ext     = getInstallerExt();
+
+  linkEl.href = valid ? buildDownloadUrl(raw, ext, null) : "#";
+  linkEl.classList.toggle("is-active", valid);
+}
+
+
+/* ============================================================
+   MODAL HELPERS
+   ============================================================ */
+
+document.addEventListener("keydown", function(e) {
+  if (e.keyCode === 27) clearModals();
+});
+
+/* Remove any open modal overlay from the DOM. */
+function clearModals() {
+  var container = document.getElementById("modal-container");
+  if (container) document.body.removeChild(container);
+  document.getElementsByTagName("html")[0].style.overflow = "";
+}
+
+/* Wrap an element in a modal overlay and add a close button. */
+function showModal(element, closeable) {
+  if (closeable === undefined) closeable = true;
+  clearModals();
+  document.getElementsByTagName("html")[0].style.overflow = "hidden";
+
+  var container = document.createElement("div");
+  container.id = "modal-container";
+  container.classList.add("overlay");
+
+  var modal = document.createElement("div");
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  modal.classList.add("modal");
+  modal.id = "modal";
+
+  if (closeable) {
+    var toolbar = document.createElement("div");
+    toolbar.classList.add("modal__toolbar");
+    var closeBtn = document.createElement("a");
+    closeBtn.classList.add("modal__close");
+    closeBtn.href = "#";
+    closeBtn.title = "close";
+    closeBtn.setAttribute("aria-label", "Close");
+    closeBtn.innerHTML = '<svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M16 1L1 16" stroke="currentColor" stroke-width="1.656"/><path d="M1 1L16 16" stroke="currentColor" stroke-width="1.656"/></svg>';
+    closeBtn.onclick = function(e) { e.preventDefault(); clearModals(); };
+    toolbar.appendChild(closeBtn);
+    modal.appendChild(toolbar);
+  }
+
+  modal.appendChild(element);
+  container.appendChild(modal);
+  document.body.appendChild(container);
+  modal.focus();
+}
+
+/* Build a modal with a title and HTML body, then display it. */
+function showMessageModal(title, bodyHtml, closeable) {
+  var content = document.createElement("div");
+  content.classList.add("modal__content");
+  content.innerHTML = '<h2 class="modal__heading">' + title + '</h2>' + bodyHtml;
+  showModal(content, closeable);
+}
+
+/* Show the profile link in a modal for manual copy. */
+function showManualConfig() {
+  showMessageModal(
+    "Profile Link",
+    '<p>Copy this link and paste into the client when prompted:</p>' +
+    '<p class="controller-url">' + links["controller"] + '</p>',
+    true
+  );
+}
+
+
+/* ============================================================
+   HERO OS DETECTION & TAB SWITCHING
+   ============================================================ */
+
+/* Best-effort OS detection from the user agent string. */
+function detectOs() {
+  var agent = navigator.userAgent.toLowerCase();
+  if (agent.includes("like mac os x"))      return "ios";
+  if (agent.includes("mac os x"))           return "macos";
+  if (agent.includes("windows"))            return "windows";
+  if (agent.includes("android"))            return "android";
+  if (agent.includes("cros"))               return "android";
+  if (agent.includes("ubuntu"))             return "ubuntu";
+  if (agent.includes("fedora"))             return "fedora";
+  if (agent.includes("red hat enterprise")) return "rhel8";
+  if (agent.includes("linux"))              return "fedora";
+  return "windows";
+}
+
+/* Deactivate all OS tabs and hide all download buttons / install steps. */
+function clearOsSelection() {
+  document.querySelectorAll("[data-tab]").forEach(function(t)     { t.classList.remove("is-active"); });
+  document.querySelectorAll("[data-button]").forEach(function(b)  { b.style.display = "none"; });
+  document.querySelectorAll("[data-install]").forEach(function(i) { i.style.display = "none"; });
+}
+
+/* Show the download button and install step for the given OS, and activate its tab. */
+function activateOs(os) {
+  var installIdMap = { android: "install-android", ios: "install-ios" };
+  var installId    = installIdMap[os] || "install-desktop";
+
+  document.getElementById(installId).style.display  = "block";
+  document.getElementById("os-selector").value      = os;
+  document.getElementById("os-" + os).style.display = "block";
+
+  var activeTab = document.querySelector("[data-tab='os-" + os + "']");
+  if (activeTab) activeTab.classList.add("is-active");
+}
+
+/* OS values that have no CLI deploy path — store-only platforms. */
+var NO_CLI_OS = ["android", "ios"];
+
+/* Public: switch the hero to a new OS (called from tab buttons and mobile select).
+   Syncs the CLI section OS, hides the entire CLI section for store-only platforms
+   (Android / iOS), and re-renders the command output for all others. */
+function changeOs(os) {
+  clearOsSelection();
+  activateOs(os);
+
+  var cliSection = document.getElementById("deploy-section");
+
+  if (NO_CLI_OS.indexOf(os) !== -1) {
+    /* Android / iOS — collapse and hide the CLI section entirely */
+    cliSection.classList.remove("is-open");
+    cliSection.querySelector(".deploy-section__toggle").setAttribute("aria-expanded", "false");
+    cliSection.style.display = "none";
+    return;
+  }
+
+  /* Show the CLI section for all desktop / server platforms.
+     Also open it automatically so the user can see the output —
+     once open it stays open across OS switches (user's choice respected). */
+  cliSection.style.display = "";
+  openDeploySection();
+
+  /* Map hero OS id to the deploy OS value the CLI builders expect.
+     Hero uses "rhel8" as the tab id; CLI builders expect "rhel". */
+  var deployOsMap = { rhel8: "rhel" };
+  var deployOs = deployOsMap[os] || os;
+  document.getElementById("deploy-os-value").value = deployOs;
+
+  onDeployControlChange();
+}
+
+/* Sync hero OS when the mobile <select> changes. */
+function selectUpdate() {
+  changeOs(document.getElementById("os-selector").value);
+}
+
+
+/* ============================================================
+   CLI DEPLOY — FORM STATE READERS
+   ============================================================ */
+
+/* Read the Windows install flag checkboxes and the attention-mode select. */
+function getWindowsFlags() {
+  var flags = [];
+  if (document.getElementById("flag-disablescripts").checked)        flags.push("/DISABLESCRIPTS");
+  if (document.getElementById("flag-autostartall").checked)          flags.push("/AUTOSTARTALL");
+  if (document.getElementById("flag-disableuseracceptance").checked) flags.push("/DISABLEUSERACCEPTANCE");
+  if (document.getElementById("flag-setsignedin").checked)           flags.push("/SETSIGNEDIN");
+  if (document.getElementById("flag-niap").checked)                  flags.push("/Y");
+  var attn = document.getElementById("flag-attentionmode").value;
+  if (attn !== "") flags.push("/ATTENTIONMODE " + attn);
+  return flags;
+}
+
+/* Read the macOS / Linux flag checkboxes and the attention-level select. */
+function getUnixFlags() {
+  return {
+    eula:      document.getElementById("flag-unix-eula").checked,
+    profile:   document.getElementById("flag-unix-profile").checked,
+    scripts:   document.getElementById("flag-unix-scripts").checked,
+    attention: document.getElementById("flag-unix-attention").value
+  };
+}
+
+/* Returns the currently active deploy OS (driven by the hero tab selection). */
+function getDeployOs() {
+  return document.getElementById("deploy-os-value").value;
+}
+
+/* Collect every deploy-form value into a single config snapshot.
+   Install flags are only meaningful for Full Client — they are suppressed
+   for all other deployment types so checked boxes cannot bleed through. */
+function getDeployConfig() {
+  var deployType = document.querySelector('input[name="deploy-type"]:checked').value;
+  var isFull     = (deployType === "full");
+
+  return {
+    fullProfile:     document.getElementById("full-profile-input").value.trim()     || links["controller"],
+    headlessProfile: document.getElementById("headless-profile-input").value.trim() || links["headless_profile"],
+    version:         getVersion(),
+    deployType:      deployType,
+    deployOs:        getDeployOs(),
+    winShell:        (document.querySelector('input[name="win-shell"]:checked') || { value: "cmd" }).value,
+    winFlags:        isFull ? getWindowsFlags() : [],
+    unixFlags:       isFull ? getUnixFlags()    : { eula: false, profile: false, scripts: false, attention: "" }
+  };
+}
+
+
+/* ============================================================
+   CLI DEPLOY — VISIBILITY TOGGLES
+   ============================================================ */
+
+/* Show or hide the Windows shell picker and OS-specific flag groups
+   based on the currently active OS (from hero tab) and deployment type. */
+function updateFlagGroupVisibility() {
+  var os         = getDeployOs();
+  var deployType = document.querySelector('input[name="deploy-type"]:checked').value;
+  var isWindows  = (os === "windows");
+  var isLinux    = (os === "ubuntu" || os === "fedora" || os === "rhel");
+  var isUnix     = (os === "macos" || isLinux);
+  var showWinFlags  = isWindows && deployType === "full";
+  var showUnixFlags = isUnix    && deployType === "full";
+
+  document.getElementById("win-shell-group").style.display  = isWindows ? "flex"  : "none";
+  document.getElementById("win-flags-group").style.display  = showWinFlags  ? "block" : "none";
+  document.getElementById("unix-flags-group").style.display = showUnixFlags ? "block" : "none";
+
+  /* "Disable Scripts" checkbox is Linux-only, not relevant for macOS */
+  document.getElementById("flag-unix-scripts-item").style.display = isLinux ? "flex" : "none";
+}
+
+/* Fires when any deploy control (OS, type, shell) changes.
+   Refreshes both download link variants so the correct one is always current. */
+function onDeployControlChange() {
+  updateFlagGroupVisibility();
+  updateDownloadLink();
+  updateVersionDownloadLinkForSelect();
+  renderDeployCommands();
+}
+
+
+/* ============================================================
+   CLI DEPLOY — DOM ELEMENT BUILDERS
+   These functions each return a single HTMLElement.
+   ============================================================ */
+
+/* Escape HTML special chars before injecting into innerHTML. */
+function escHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+/* SVG icon strings reused across copy-button states. */
+var ICON_COPY    = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+var ICON_COPIED  = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+
+/* Build a dark terminal-style code block with a copy button and optional note. */
+function makeCodeBlock(title, code, note) {
+  var wrap = document.createElement("div");
+  wrap.className = "cmd-block";
+  wrap.innerHTML =
+    '<div class="cmd-block__header">' +
+      '<span class="cmd-block__title">' + title + '</span>' +
+      '<button class="cmd-copy-btn" onclick="copyCodeBlock(this)" title="Copy to clipboard">' +
+        ICON_COPY + " Copy" +
+      '</button>' +
+    '</div>' +
+    '<pre class="cmd-block__code"><code>' + escHtml(code) + '</code></pre>' +
+    (note ? '<div class="cmd-note">' + note + '</div>' : "");
+  return wrap;
+}
+
+/* Build a bold section heading that separates logical groups. */
+function makeSectionHeader(text) {
+  var h = document.createElement("h3");
+  h.className = "cmd-section-header";
+  h.textContent = text;
+  return h;
+}
+
+/* Build a prose instruction paragraph (supports inline HTML like <code>). */
+function makeInstruction(html) {
+  var p = document.createElement("p");
+  p.className = "cmd-instruction";
+  p.innerHTML = html;
+  return p;
+}
+
+/* Copy the code text from a .cmd-block and show a brief "Copied!" state. */
+function copyCodeBlock(btn) {
+  var code = btn.closest(".cmd-block").querySelector("code").textContent;
+  navigator.clipboard.writeText(code).then(function() {
+    btn.innerHTML = ICON_COPIED + " Copied!";
+    btn.classList.add("copied");
+    setTimeout(function() {
+      btn.innerHTML = ICON_COPY + " Copy";
+      btn.classList.remove("copied");
+    }, 2000);
+  });
+}
+
+
+/* ============================================================
+   CLI DEPLOY — macOS CONFIG LINE BUILDER
+   Returns a multi-line shell string of `defaults write` commands.
+   ============================================================ */
+
+function buildMacosConfigLines(profile, unixFlags) {
+  var lines = [];
+
+  if (unixFlags.eula) {
+    lines.push(
+      "# Disable the data usage acceptance screen on first launch",
+      "defaults write com.appgate.sdp.service user_approval -bool YES"
+    );
+  }
+
+  if (unixFlags.profile) {
+    lines.push(
+      "",
+      "# Set the client profile URL",
+      '# Multiple profiles can be separated by semicolons: "profile1;profile2"',
+      'defaults write com.appgate.sdp.service default_profiles "' + profile + '"'
+    );
+  }
+
+  if (unixFlags.attention !== "") {
+    lines.push(
+      "",
+      "# Set attention level: 0=Low, 1=Normal, 2=High",
+      "defaults write com.appgate.sdp attention_mode " + unixFlags.attention
+    );
+  }
+
+  return lines.join("\n").replace(/^\n/, "");
+}
+
+
+/* ============================================================
+   CLI DEPLOY — LINUX CONFIG LINE BUILDER
+   Returns a multi-line string of sed commands for user.settings.
+   ============================================================ */
+
+function buildLinuxConfigLines(profile, unixFlags) {
+  var f     = "~/.config/appgatesdp-service/user.settings";
+  var lines = [
+    "# Edit: " + f,
+    "# Location inside file: <configuration><appSettings>",
+  ];
+
+  /* Helper: produces a sed upsert for a given XML key + value */
+  function sedUpsert(key, value) {
+    return [
+      'sed -i \'s|<add key="' + key + '".*/>|<add key="' + key + '" value="' + value + '" />|\' ' + f + ' \\',
+      '  || sed -i \'s|</appSettings>|  <add key="' + key + '" value="' + value + '" />\\n</appSettings>|\' ' + f
+    ].join("\n");
+  }
+
+  if (unixFlags.eula) {
+    lines.push("", "# Disable the data usage acceptance screen on first launch");
+    lines.push(sedUpsert("userApprovalPref", "True"));
+  }
+
+  if (unixFlags.scripts) {
+    lines.push("", "# Disable device claim scripts (these run with full admin privileges)");
+    lines.push(sedUpsert("scriptsDisabledPref", "True"));
+  }
+
+  if (unixFlags.profile) {
+    lines.push(
+      "",
+      "# Set the client profile URL",
+      '# Multiple profiles can be separated by semicolons: "profile1;profile2"'
+    );
+    lines.push(sedUpsert("defaultProfilesPref", profile));
+  }
+
+  if (unixFlags.attention !== "") {
+    lines.push("", "# Set attention level: 0=Low, 1=Normal, 2=High");
+    lines.push(sedUpsert("attentionModePref", unixFlags.attention));
+  }
+
+  return lines.join("\n");
+}
+
+
+/* ============================================================
+   CLI DEPLOY — DOWNLOAD BLOCK BUILDER
+   Generates OS-appropriate CLI commands to download the installer
+   to the system temp directory (%TEMP% on Windows, /tmp elsewhere).
+   Called as the first block in every OS builder when a version or
+   URL is known.
+   ============================================================ */
+
+/* Returns a code block with the correct download command for the given OS,
+   saving the file to the platform temp directory.
+   shell: "cmd" | "powershell"  (Windows only; ignored for other OS)
+   Returns null if no download URL can be resolved. */
+function buildDownloadBlock(os, version, shell) {
+  var ext        = os === "windows" ? "exe" : os === "macos" ? "dmg" : os === "ubuntu" ? "deb" : "rpm";
+  var url        = buildDownloadUrl(version, ext, os);
+  var filename   = getInstallerFilename(version, ext, os);
+  var isCmd      = (shell === "cmd");
+
+  if (os === "windows") {
+    /* Windows temp: %TEMP% (CMD) or $env:TEMP (PowerShell) */
+    if (isCmd) {
+      return makeCodeBlock(
+        "CMD — Download Installer to %TEMP%",
+        [
+          ":: Download the Appgate SDP installer to the system temp directory",
+          'curl -L -o "%TEMP%\\' + filename + '" "' + url + '"',
+        ].join("\n"),
+        null
+      );
+    } else {
+      return makeCodeBlock(
+        "PowerShell — Download Installer to $env:TEMP",
+        [
+          "# Download the Appgate SDP installer to the system temp directory",
+          'Invoke-WebRequest -Uri "' + url + '" -OutFile "$env:TEMP\\' + filename + '"',
+        ].join("\n"),
+        null
+      );
+    }
+  }
+
+  if (os === "macos") {
+    return makeCodeBlock(
+      "Download Installer to /tmp",
+      [
+        "# Download the Appgate SDP client DMG to /tmp",
+        'curl -L -o "/tmp/' + filename + '" "' + url + '"',
+      ].join("\n"),
+      null
+    );
+  }
+
+  /* Linux (ubuntu / fedora / rhel) */
+  var distroLabel = os.charAt(0).toUpperCase() + os.slice(1);
+  return makeCodeBlock(
+    distroLabel + " — Download Installer to /tmp",
+    [
+      "# Download the Appgate SDP client package to /tmp",
+      'wget -P /tmp "' + url + '"',
+    ].join("\n"),
+    null
+  );
+}
+
+
+/* ============================================================
+   CLI DEPLOY — WINDOWS COMMAND BLOCKS
+   ============================================================ */
+
+function buildWindowsBlocks(deployType, shell, fullProfile, headlessProfile, version, winFlags) {
+  var blocks = [];
+  var isCmd  = (shell === "cmd");
+  var exe    = getInstallerFilename(version, "exe", "windows");
+  var flags  = (winFlags && winFlags.length) ? " " + winFlags.join(" ") : "";
+  var configurator = "C:\\Program Files\\Appgate SDP\\Service\\Appgate SDP Service Configurator.exe";
+
+  /* Helper: build install command string for the given installer flags.
+     References %TEMP% (CMD) or $env:TEMP (PowerShell) — matching where
+     buildDownloadBlock saves the file. */
+  function winInstallCmd(installerFlags) {
+    if (isCmd) {
+      return [
+        ':: Install from the temp directory',
+        'start "" /WAIT "%TEMP%\\' + exe + '" ' + installerFlags + flags
+      ].join("\n");
+    } else {
+      return [
+        '# Install from the temp directory',
+        'Start-Process "$env:TEMP\\' + exe + '" -ArgumentList \'' + installerFlags + flags + '\' -Wait'
+      ].join("\n");
+    }
+  }
+
+  /* Helper: build Service Configurator set command */
+  function winConfiguratorSetCmd(profileUrl, username, password) {
+    if (isCmd) {
+      return 'start "" /WAIT "' + configurator + '" set -o "' + profileUrl + '" -u ' + username + ' -p ' + password;
+    } else {
+      return "& '" + configurator + "' set -o \"" + profileUrl + '" -u ' + username + " -p " + password;
+    }
+  }
+
+  var shell_label = isCmd ? "CMD" : "PowerShell";
+
+  /* Preamble */
+  var preamble = "Run <strong>" + shell_label + "</strong> as Administrator.";
+  blocks.push(makeInstruction(preamble));
+
+  /* Download step — shown for all types except uninstall */
+  if (deployType !== "uninstall") {
+    var dlBlock = buildDownloadBlock("windows", version, shell);
+    if (dlBlock) blocks.push(dlBlock);
+  }
+
+  var diagBlock = makeCodeBlock(
+    "Service Configurator — Status & Diagnostics",
+    [
+      isCmd ? ':: Show current configuration'  : '# Show current configuration',
+      '"Appgate SDP Service Configurator.exe" get -c',
+      "",
+      isCmd ? ':: Show connection details'      : '# Show connection details',
+      '"Appgate SDP Service Configurator.exe" get -d',
+      "",
+      isCmd ? ':: Show service status'          : '# Show service status',
+      '"Appgate SDP Service Configurator.exe" get -s',
+      "",
+      isCmd ? ':: Restart the service'          : '# Restart the service',
+      '"Appgate SDP Service Configurator.exe" reset -s',
+      "",
+      isCmd ? ':: Reset configuration'          : '# Reset configuration',
+      '"Appgate SDP Service Configurator.exe" reset -c',
+    ].join("\n"),
+    null
+  );
+
+  if (deployType === "full") {
+    blocks.push(makeSectionHeader("Step 1 — Install Full Client"));
+    blocks.push(makeCodeBlock(
+      shell_label + " — Install Full Client",
+      winInstallCmd('/S /P="' + fullProfile + '"'),
+      null
+    ));
+    blocks.push(makeInstruction("The client will launch after install. Sign in when prompted."));
+
+  } else if (deployType === "headless") {
+    blocks.push(makeSectionHeader("Step 1 — Install Client (Headless Mode)"));
+    blocks.push(makeCodeBlock(
+      shell_label + " — Install Headless Client",
+      winInstallCmd("/E /S"),
+      null
+    ));
+    blocks.push(makeSectionHeader("Step 2 — Configure Headless Client"));
+    blocks.push(makeInstruction(
+      "Replace <code>&lt;HEADLESS_USER&gt;</code> and <code>&lt;PASSWORD&gt;</code> with credentials from your IDP."
+    ));
+    blocks.push(makeCodeBlock(
+      shell_label + " — Configure Headless Profile",
+      winConfiguratorSetCmd(headlessProfile, "<HEADLESS_USER>", "<PASSWORD>"),
+      "⚠️ The headless user account must exist in the IDP linked to this client profile before the service will connect."
+    ));
+    blocks.push(makeSectionHeader("Troubleshooting"));
+    blocks.push(diagBlock);
+
+  } else if (deployType === "always-on") {
+    blocks.push(makeSectionHeader("Step 1 — Install Always-On Client"));
+    blocks.push(makeInstruction(
+      "Always-On installs both the full client and the headless service. " +
+      "Use the <strong>full client profile URL</strong> for the installer flag."
+    ));
+    blocks.push(makeCodeBlock(
+      shell_label + " — Install Always-On Client",
+      winInstallCmd('/O /S /P="' + fullProfile + '"'),
+      null
+    ));
+    blocks.push(makeSectionHeader("Step 2 — Configure Always-On Service"));
+    blocks.push(makeInstruction(
+      "Configure the always-on headless service. " +
+      "Replace <code>&lt;ALWAYSON_USER&gt;</code> and <code>&lt;PASSWORD&gt;</code> with IDP credentials."
+    ));
+    blocks.push(makeCodeBlock(
+      shell_label + " — Configure Always-On Profile",
+      winConfiguratorSetCmd(headlessProfile, "<ALWAYSON_USER>", "<PASSWORD>"),
+      "💡 When a full client user logs in, the headless service is automatically suspended. No extra configuration needed."
+    ));
+    blocks.push(makeSectionHeader("Troubleshooting"));
+    blocks.push(diagBlock);
+
+  } else if (deployType === "uninstall") {
+    blocks.push(makeSectionHeader("Uninstall"));
+    blocks.push(makeInstruction("Run the installer with the uninstall flags to silently remove Appgate SDP."));
+    blocks.push(makeCodeBlock(
+      shell_label + " — Uninstall Client",
+      winInstallCmd("/S /Z"),
+      null
+    ));
+  }
+
+  return blocks;
+}
+
+
+/* ============================================================
+   CLI DEPLOY — macOS COMMAND BLOCKS
+   ============================================================ */
+
+function buildMacosBlocks(deployType, fullProfile, headlessProfile, version, unixFlags) {
+  var blocks  = [];
+  var dmg     = getInstallerFilename(version, "dmg", "macos");
+  var dmgPath = "/tmp/" + dmg;
+  var dmgUrl  = buildDownloadUrl(version, "dmg", "macos");
+  var headlessInstaller = "sudo /Library/Application\\ Support/Appgate/headless-installer";
+
+  blocks.push(makeInstruction(
+    "Run these commands in <strong>Terminal</strong>. Commands that modify system settings require <code>sudo</code>."
+  ));
+
+  if (deployType !== "uninstall") {
+    blocks.push(makeSectionHeader("Step 1 — Download & Install Client"));
+    /* Download block uses buildDownloadBlock for consistent /tmp targeting */
+    var dlBlock = buildDownloadBlock("macos", version, null);
+    if (dlBlock) blocks.push(dlBlock);
+    blocks.push(makeCodeBlock(
+      "Install Client",
+      [
+        "# Mount the DMG, install the package, then detach",
+        'hdiutil attach "/tmp/' + dmg + '" -mountpoint /tmp/appgate',
+        'sudo installer -pkg /tmp/appgate/Appgate\\ SDP\\ Installer.pkg -target "/"',
+        "hdiutil detach /tmp/appgate",
+      ].join("\n"),
+      null
+    ));
+  }
+
+  var macDiagBlock = makeCodeBlock(
+    "Full Client — Diagnostics",
+    [
+      "# Watch live client logs",
+      "tail -f /var/log/appgate/driver.log",
+      "",
+      "# Check client status",
+      "cat /var/log/appgate/driver.status",
+      "",
+      "# Show client configuration",
+      "defaults read com.appgate.sdp",
+      "",
+      "# Show service configuration",
+      "defaults read com.appgate.sdp.service",
+    ].join("\n"),
+    null
+  );
+
+  var headlessDiagBlock = makeCodeBlock(
+    "Headless Client — Diagnostics",
+    [
+      "# Watch live headless logs",
+      "tail -f /var/log/appgate-headless",
+      "",
+      "# Get headless service status",
+      "sudo /Library/Application\\ Support/Appgate/appgate_service_configurator status",
+      "",
+      "# Get headless configuration",
+      "sudo /Library/Application\\ Support/Appgate/appgate_service_configurator getconfig",
+      "",
+      "# Start the headless service",
+      "sudo launchctl load /Library/LaunchDaemons/com.appgate.sdp.headless.plist",
+      "",
+      "# Stop the headless service",
+      "sudo launchctl unload /Library/LaunchDaemons/com.appgate.sdp.headless.plist",
+    ].join("\n"),
+    null
+  );
+
+  if (deployType === "full") {
+    blocks.push(makeSectionHeader("Step 2 — Configure Full Client"));
+    blocks.push(makeInstruction("Run these commands for each user account that will use the full client."));
+    var cfgLines = buildMacosConfigLines(fullProfile, unixFlags);
+    if (cfgLines) blocks.push(makeCodeBlock("Configure Full Client Profile", cfgLines, null));
+
+  } else if (deployType === "headless") {
+    blocks.push(makeSectionHeader("Step 2 — Configure Headless Client"));
+    blocks.push(makeInstruction(
+      "Replace <code>&lt;HEADLESS_USER&gt;</code> and <code>&lt;PASSWORD&gt;</code> with IDP credentials."
+    ));
+    blocks.push(makeCodeBlock(
+      "Configure Headless Profile",
+      [
+        "# Configure and start the headless client service",
+        headlessInstaller + " \\",
+        "  --username <HEADLESS_USER> \\",
+        "  --password <PASSWORD> \\",
+        '  --profilelink "' + headlessProfile + '"',
+      ].join("\n"),
+      "⚠️ The headless user must exist in the IDP before the service will connect."
+    ));
+    blocks.push(makeSectionHeader("Troubleshooting"));
+    blocks.push(headlessDiagBlock);
+
+  } else if (deployType === "always-on") {
+    blocks.push(makeSectionHeader("Step 2 — Configure Full Client (Always-On)"));
+    blocks.push(makeInstruction(
+      "Configure the full client first, then the headless service. " +
+      "The headless service suspends automatically when a full client user is logged in."
+    ));
+    var cfgLinesAO = buildMacosConfigLines(fullProfile, unixFlags);
+    if (cfgLinesAO) blocks.push(makeCodeBlock("Configure Full Client Profile", cfgLinesAO, null));
+    blocks.push(makeSectionHeader("Step 3 — Configure Always-On Headless Service"));
+    blocks.push(makeInstruction(
+      "Replace <code>&lt;ALWAYSON_USER&gt;</code> and <code>&lt;PASSWORD&gt;</code> with IDP credentials."
+    ));
+    blocks.push(makeCodeBlock(
+      "Configure Always-On Headless Profile",
+      [
+        "# Configure the always-on headless service",
+        headlessInstaller + " \\",
+        "  --username <ALWAYSON_USER> \\",
+        "  --password <PASSWORD> \\",
+        '  --profilelink "' + headlessProfile + '"',
+      ].join("\n"),
+      "💡 When a full client user logs in, the headless service is automatically suspended."
+    ));
+    blocks.push(makeSectionHeader("Troubleshooting"));
+    blocks.push(headlessDiagBlock);
+
+  } else if (deployType === "uninstall") {
+    blocks.push(makeSectionHeader("Uninstall"));
+    blocks.push(makeInstruction("This will remove the Appgate SDP client and all settings."));
+    blocks.push(makeCodeBlock(
+      "Uninstall & Clear Configuration",
+      [
+        "# Uninstall client and remove all settings",
+        "# Remove --clear-settings to preserve basic configuration",
+        "sudo /Library/Application\\ Support/Appgate/interactive-uninstall --clear-settings",
+      ].join("\n"),
+      null
+    ));
+  }
+
+  return blocks;
+}
+
+
+/* ============================================================
+   CLI DEPLOY — LINUX COMMAND BLOCKS
+   ============================================================ */
+
+function buildLinuxBlocks(deployType, fullProfile, headlessProfile, distro, version, unixFlags) {
+  var blocks   = [];
+  var ext      = (distro === "ubuntu") ? "deb" : "rpm";
+  var pkg      = getInstallerFilename(version, ext, distro);
+  var label    = distro.charAt(0).toUpperCase() + distro.slice(1);
+
+  var installCmds = {
+    ubuntu: ["# Install the Appgate SDP client .deb package", "sudo apt install ./" + pkg],
+    fedora: ["# Install the Appgate SDP client .rpm package", "sudo dnf install ./" + pkg],
+    rhel:   ["# Install the Appgate SDP client .rpm package", "sudo rpm -i " + pkg],
+  };
+
+  blocks.push(makeInstruction(
+    "Run these commands in a terminal with <code>sudo</code> privileges."
+  ));
+
+  if (deployType !== "uninstall") {
+    blocks.push(makeSectionHeader("Step 1 — Download & Install Client"));
+
+    /* Download block — uses buildDownloadBlock for consistent /tmp targeting */
+    var dlBlock = buildDownloadBlock(distro, version, null);
+    if (dlBlock) blocks.push(dlBlock);
+
+    blocks.push(makeCodeBlock(
+      label + " — Install",
+      (installCmds[distro] || []).join("\n"),
+      null
+    ));
+  }
+
+  if (deployType === "full") {
+    blocks.push(makeSectionHeader("Step 2 — Configure Full Client"));
+    blocks.push(makeInstruction(
+      "Open the Appgate SDP client and enter the profile URL when prompted, or launch it directly."
+    ));
+    blocks.push(makeCodeBlock(
+      "Launch Client with Profile URL",
+      [
+        "# Launch the Appgate SDP client with the profile URL",
+        '/opt/appgate/Appgate\\ SDP --url "' + fullProfile + '" --novalidate',
+      ].join("\n"),
+      null
+    ));
+    var cfgLines = buildLinuxConfigLines(fullProfile, unixFlags);
+    if (cfgLines) {
+      blocks.push(makeInstruction("Run these commands for each user account that will use the full client."));
+      blocks.push(makeCodeBlock("Configure Full Client Settings", cfgLines, null));
+    }
+
+  } else if (deployType === "headless") {
+    blocks.push(makeSectionHeader("Step 2 — Configure Headless Client"));
+    blocks.push(makeInstruction(
+      "Replace <code>&lt;HEADLESS_USER&gt;</code> and <code>&lt;PASSWORD&gt;</code> with IDP credentials."
+    ));
+    blocks.push(makeCodeBlock(
+      "Configure Headless Profile",
+      [
+        "# Configure and activate the headless client service",
+        "sudo /opt/appgate/headless-installer \\",
+        "  --username <HEADLESS_USER> \\",
+        "  --password <PASSWORD> \\",
+        '  --profilelink "' + headlessProfile + '"',
+      ].join("\n"),
+      "⚠️ The headless user must exist in the IDP before the service will connect."
+    ));
+    blocks.push(makeSectionHeader("Troubleshooting"));
+    blocks.push(makeCodeBlock(
+      "Headless Client — Diagnostics",
+      [
+        "# Watch live headless logs",
+        "tail -f /var/log/appgate-headless",
+        "",
+        "# Get headless service status",
+        "sudo /opt/appgate/appgate_service_configurator status",
+        "",
+        "# Start headless service",
+        "sudo systemctl start appgate-headless",
+        "",
+        "# Stop headless service",
+        "sudo systemctl stop appgate-headless",
+      ].join("\n"),
+      null
+    ));
+
+  } else if (deployType === "always-on") {
+    blocks.push(makeSectionHeader("Step 2 — Configure Always-On Client"));
+    blocks.push(makeInstruction(
+      "Configure the full client profile first, then set up the always-on headless service."
+    ));
+    blocks.push(makeCodeBlock(
+      "Launch Full Client with Profile URL",
+      [
+        "# Launch the Appgate SDP full client with profile URL",
+        '/opt/appgate/Appgate\\ SDP --url "' + fullProfile + '" --novalidate',
+      ].join("\n"),
+      null
+    ));
+    var cfgLinesAO = buildLinuxConfigLines(fullProfile, unixFlags);
+    if (cfgLinesAO) {
+      blocks.push(makeInstruction("Run these commands for each user account that will use the full client."));
+      blocks.push(makeCodeBlock("Configure Full Client Settings", cfgLinesAO, null));
+    }
+    blocks.push(makeCodeBlock(
+      "Configure Always-On Headless Service",
+      [
+        "# Configure the always-on headless service",
+        "sudo /opt/appgate/headless-installer \\",
+        "  --username <ALWAYSON_USER> \\",
+        "  --password <PASSWORD> \\",
+        '  --profilelink "' + headlessProfile + '"',
+      ].join("\n"),
+      "💡 When a full client user logs in, the headless service is automatically suspended."
+    ));
+    blocks.push(makeSectionHeader("Troubleshooting"));
+    blocks.push(makeCodeBlock(
+      "Headless Client — Diagnostics",
+      [
+        "# Watch live headless logs",
+        "tail -f /var/log/appgate-headless",
+        "",
+        "# Get headless service status",
+        "sudo /opt/appgate/appgate_service_configurator status",
+        "",
+        "# Start headless service",
+        "sudo systemctl start appgate-headless",
+        "",
+        "# Stop headless service",
+        "sudo systemctl stop appgate-headless",
+      ].join("\n"),
+      null
+    ));
+
+  } else if (deployType === "uninstall") {
+    var uninstallCmds = {
+      ubuntu: ["# Remove the Appgate SDP client and purge all configuration", "sudo apt purge appgate-sdp", "sudo apt autoremove"],
+      fedora: ["# Remove the Appgate SDP client", "sudo dnf remove appgate-sdp"],
+      rhel:   ["# Remove the Appgate SDP client", "sudo rpm -e appgate-sdp"],
+    };
+    blocks.push(makeSectionHeader("Uninstall"));
+    blocks.push(makeInstruction("This will remove the Appgate SDP client and all its settings."));
+    blocks.push(makeCodeBlock(
+      label + " — Uninstall",
+      (uninstallCmds[distro] || []).join("\n"),
+      null
+    ));
+  }
+
+  return blocks;
+}
+
+
+/* ============================================================
+   CLI DEPLOY — ORCHESTRATION
+   Reads form state → picks the right builder → renders output.
+   ============================================================ */
+
+function renderDeployCommands() {
+  var cfg       = getDeployConfig();
+  var container = document.getElementById("deploy-commands-output");
+  container.innerHTML = "";
+
+  var blocks = [];
+  if (cfg.deployOs === "windows") {
+    blocks = buildWindowsBlocks(cfg.deployType, cfg.winShell, cfg.fullProfile, cfg.headlessProfile, cfg.version, cfg.winFlags);
+  } else if (cfg.deployOs === "macos") {
+    blocks = buildMacosBlocks(cfg.deployType, cfg.fullProfile, cfg.headlessProfile, cfg.version, cfg.unixFlags);
+  } else if (cfg.deployOs === "ubuntu" || cfg.deployOs === "fedora" || cfg.deployOs === "rhel") {
+    blocks = buildLinuxBlocks(cfg.deployType, cfg.fullProfile, cfg.headlessProfile, cfg.deployOs, cfg.version, cfg.unixFlags);
+  }
+
+  blocks.forEach(function(b) { container.appendChild(b); });
+}
+
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+
+document.addEventListener("DOMContentLoaded", function() {
+  applyLiteMode();                  /* handle ?lite query string */
+  refreshAllLinks();                /* stamp all [data-linkid] elements */
+  changeOs(detectOs());             /* activate the detected OS tab */
+  syncCliProfileInputsFromConfig();  /* pre-fill CLI profile inputs */
+  updateFlagGroupVisibility();      /* show/hide flag groups for default OS */
+  renderDeployCommands();           /* render default CLI output */
+  fetchVersionCatalog();            /* async: populate version dropdown from client.json
+                                       (falls back to manual input on CORS/network error) */
+});
+</script>
+
+</body>
+</html>
